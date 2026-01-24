@@ -10,11 +10,15 @@ engine = create_engine(DB_URL)
 st.set_page_config(page_title="Crypto Arbitrage Hunter", layout="wide")
 st.title("💰 Real-Time Arbitrage Monitor")
 
-# Fungsi ambil data
+# Fungsi ambil data (DIBALIK: Data baru di atas)
 def get_data():
     # Ambil data dari tabel hasil olahan dbt
-    # Pastikan nama schema 'dbt_analytics' sesuai yang di profiles.yml
-    query = "SELECT * FROM dbt_analytics.arbitrage_opportunities"
+    # LIMIT 50 biar browser tidak berat, cuma ambil 50 data terbaru
+    query = """
+    SELECT * FROM dbt_analytics.arbitrage_opportunities 
+    ORDER BY timestamp DESC 
+    LIMIT 50
+    """
     return pd.read_sql(query, engine)
 
 # Auto refresh logic sederhana

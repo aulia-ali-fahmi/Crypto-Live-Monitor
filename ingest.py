@@ -4,26 +4,24 @@ from sqlalchemy import create_engine
 import time
 from datetime import datetime
 
-# --- KONFIGURASI DATABASE ---
-# Ganti dengan Connection String dari Neon.tech Anda
-# Pastikan formatnya dimulai dengan postgresql:// (bukan postgres://)
-# Kalau dari Neon tulisannya postgres://, tambahkan 'ql' jadi postgresql://
+
+# Link ambil dari neon > connection string
 DB_URL = "postgresql://neondb_owner:npg_sPqRlkjmQ04J@ep-gentle-king-a1yepbkv-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require" 
 engine = create_engine(DB_URL)
 
-# --- KONFIGURASI EXCHANGE ---
+# Konfigurasi exchange
 exchanges = {
     'binance': ccxt.binance({
         'options': {
-            'defaultType': 'spot', # Cukup ini saja. Jangan tambah URLs aneh-aneh.
+            'defaultType': 'spot', # Ditambah ini biar fokus ambil nilai spot
         },
-        'timeout': 30000, # Tambah waktu tunggu jadi 30 detik biar gak gampang putus
+        'timeout': 30000, # Tambah waktu tunggu 30 detik biar gak gampang putus
     }),
     'kraken': ccxt.kraken(),
     'coinbase': ccxt.coinbase()
 }
 
-symbol = 'BTC/USDT' # Kita fokus 1 pasangan dulu
+symbol = 'BTC/USDT' # Fokus 1 pasangan dulu
 
 def fetch_prices():
     data_list = []
@@ -33,7 +31,7 @@ def fetch_prices():
             # Ambil data ticker (harga saat ini)
             ticker = exchange.fetch_ticker(symbol)
             
-            # Kita butuh Bid (Harga orang mau beli) dan Ask (Harga orang mau jual)
+            # Ambil Bid (Harga orang mau beli) dan Ask (Harga orang mau jual)
             data = {
                 'timestamp': datetime.now(),
                 'exchange': name,
@@ -52,19 +50,19 @@ def fetch_prices():
 def main():
     print("Mulai Monitoring Harga...")
     while True:
-        # 1. Ambil Data
+        # Ambil data
         prices = fetch_prices()
         
         if prices:
-            # 2. Ubah ke DataFrame (Tabel)
+            # Ubah ke dataframe/tabel
             df = pd.DataFrame(prices)
             
-            # 3. Masukkan ke Database (Table: raw_prices)
+            # Masukkan ke database (table: raw_prices)
             # if_exists='append' artinya nambah data terus ke bawah
             df.to_sql('raw_prices', engine, if_exists='append', index=False)
             print(f"Data tersimpan jam {datetime.now()}")
         
-        # 4. Tunggu 60 detik sebelum ambil lagi (biar gak kena ban)
+        # Tunggu 60 detik sebelum ambil lagi (biar gak kena ban)
         time.sleep(60)
 
 if __name__ == "__main__":

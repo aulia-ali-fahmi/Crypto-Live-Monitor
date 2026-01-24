@@ -3,8 +3,7 @@ import pandas as pd
 from sqlalchemy import create_engine
 import time
 
-# --- KONFIGURASI ---
-# Gunakan link neon yang sama
+# Gunakan secrets di streamlit
 DB_URL = st.secrets["db_url"]
 engine = create_engine(DB_URL)
 
@@ -18,18 +17,18 @@ def get_data():
     query = "SELECT * FROM dbt_analytics.arbitrage_opportunities"
     return pd.read_sql(query, engine)
 
-# Auto Refresh logic sederhana
+# Auto refresh logic sederhana
 placeholder = st.empty()
 
 while True:
     df = get_data()
     
     with placeholder.container():
-        # KPI Cards
+        # Kpi Cards
         kpi1, kpi2, kpi3 = st.columns(3)
         
         if not df.empty:
-            best_opp = df.iloc[0] # Ambil baris pertama (paling untung)
+            best_opp = df.iloc[0] # Ambil baris pertama paling untung
             
             kpi1.metric(
                 label="Best Opportunity", 

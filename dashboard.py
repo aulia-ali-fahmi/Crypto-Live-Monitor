@@ -34,7 +34,7 @@ while True:
             kpi1.metric(
                 label="Best Opportunity", 
                 value=f"{best_opp['profit_pct']:.2f}%",
-                delta="Profit Bersih"
+                delta="Net Profit"
             )
             kpi2.metric(
                 label="Buy At", 
@@ -45,7 +45,7 @@ while True:
                 value=best_opp['sell_exchange'].upper()
             )
 
-            st.subheader("Detail Peluang Saat Ini")
+            st.subheader("Live Arbitrage Opportunities")
             # Format kolom harga dan profit agar ada $ dan 2 desimal
             format_dict = {
                 "buy_price": "${:,.2f}",
@@ -56,6 +56,6 @@ while True:
             # Warnai tabel
             st.dataframe(df.style.format(format_dict).highlight_max(axis=0, color='green'))
         else:
-            st.warning("Belum ada peluang arbitrase yang profit saat ini.")
+            st.warning("No profitable arbitrage opportunities at the moment.")
             
         time.sleep(5) # Refresh tampilan tiap 5 detik

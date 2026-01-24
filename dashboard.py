@@ -5,7 +5,7 @@ import time
 
 # --- KONFIGURASI ---
 # Gunakan link neon yang sama
-DB_URL = "postgresql://neondb_owner:npg_sPqRlkjmQ04J@ep-gentle-king-a1yepbkv-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
+DB_URL = st.secrets["db_url"]
 engine = create_engine(DB_URL)
 
 st.set_page_config(page_title="Crypto Arbitrage Hunter", layout="wide")

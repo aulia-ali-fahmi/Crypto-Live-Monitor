@@ -9,7 +9,6 @@ engine = create_engine(DB_URL)
 
 st.set_page_config(page_title="Crypto Arbitrage Hunter", layout="wide")
 st.title("💰 Real-Time Arbitrage Monitor")
-st.caption("All timestamps are in Local Time (WIB/GMT+7).")
 
 # Fungsi ambil data, data baru di atas
 def get_data():
@@ -50,6 +49,7 @@ while True:
             )
 
             st.subheader("Live Arbitrage Opportunities")
+            st.caption("All timestamps are in Local Time (WIB/GMT+7).")
             # Format kolom harga dan profit agar ada $ dan 2 desimal
             format_dict = {
                 "buy_price": "${:,.2f}",

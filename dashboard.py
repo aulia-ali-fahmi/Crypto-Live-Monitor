@@ -9,11 +9,12 @@ engine = create_engine(DB_URL)
 
 st.set_page_config(page_title="Crypto Arbitrage Hunter", layout="wide")
 st.title("💰 Real-Time Arbitrage Monitor")
+st.caption("All timestamps are in Local Time (WIB/GMT+7).")
 
-# Fungsi ambil data (DIBALIK: Data baru di atas)
+# Fungsi ambil data, data baru di atas
 def get_data():
     # Ambil data dari tabel hasil olahan dbt
-    # LIMIT 50 biar browser tidak berat, cuma ambil 50 data terbaru
+    # Limit 50 biar browser tidak berat, cuma ambil 50 data terbaru
     query = """
     SELECT * FROM dbt_analytics.arbitrage_opportunities 
     ORDER BY timestamp DESC 

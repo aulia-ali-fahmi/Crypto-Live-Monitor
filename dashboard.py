@@ -3,69 +3,71 @@ import pandas as pd
 from sqlalchemy import create_engine
 import time
 
-# Gunakan secrets di streamlit
+# Konfigurasi Halaman (Biar Lebar)
+st.set_page_config(page_title="Crypto Arbitrage Hunter", layout="wide")
+
+# Koneksi DB
 DB_URL = st.secrets["db_url"]
 engine = create_engine(DB_URL)
 
-st.set_page_config(page_title="Crypto Arbitrage Hunter", layout="wide")
 st.title("💰 Real-Time Arbitrage Monitor")
 
-# Fungsi ambil data, data baru di atas
-def get_data():
-    # Ambil data dari tabel hasil olahan dbt
-    # Limit 50 biar browser tidak berat, cuma ambil 50 data terbaru
+# --- QUERY 1: UNTUK GRAFIK (Ambil Data Banyak tapi Ringan) ---
+def get_chart_data():
     query = """
-    SELECT * FROM dbt_analytics.arbitrage_opportunities 
-    ORDER BY timestamp DESC 
-    LIMIT 50
+    SELECT DISTINCT ON (timestamp) 
+        timestamp, 
+        profit_pct 
+    FROM dbt_analytics.arbitrage_opportunities 
+    ORDER BY timestamp DESC, profit_pct DESC
+    LIMIT 200 -- Ambil 200 titik data biar grafik kelihatan panjang
     """
     return pd.read_sql(query, engine)
 
-# Auto refresh logic sederhana
+# --- QUERY 2: UNTUK TABEL (Ambil Sedikit tapi Detail) ---
+def get_table_data():
+    query = """
+    SELECT DISTINCT ON (timestamp) * 
+    FROM dbt_analytics.arbitrage_opportunities 
+    ORDER BY timestamp DESC, profit_pct DESC
+    LIMIT 10
+    """
+    return pd.read_sql(query, engine)
+
+# Auto refresh
 placeholder = st.empty()
 
 while True:
-    df = get_data()
+    df_chart = get_chart_data()
+    df_table = get_table_data()
     
     with placeholder.container():
-        # Kpi Cards
-        kpi1, kpi2, kpi3 = st.columns(3)
-        
-        if not df.empty:
-            best_opp = df.iloc[0] # Ambil baris pertama paling untung
+        # KPI Cards (Pakai data terbaru dari tabel)
+        if not df_table.empty:
+            best_opp = df_table.iloc[0]
             
-            kpi1.metric(
-                label="Best Opportunity", 
-                value=f"{best_opp['profit_pct']:.2f}%",
-                delta="Net Profit"
-            )
-            kpi2.metric(
-                label="Buy At", 
-                value=best_opp['buy_exchange'].upper()
-            )
-            kpi3.metric(
-                label="Sell At", 
-                value=best_opp['sell_exchange'].upper()
-            )
+            kpi1, kpi2, kpi3 = st.columns(3)
+            kpi1.metric("Best Profit", f"{best_opp['profit_pct']:.2f}%")
+            kpi2.metric("Buy At", best_opp['buy_exchange'].upper())
+            kpi3.metric("Sell At", best_opp['sell_exchange'].upper())
 
-            st.subheader("Live Arbitrage Opportunities")
-            st.caption("All timestamps are in Local Time (WIB/GMT+7).")
-            # Format kolom harga dan profit agar ada $ dan 2 desimal
+            # --- GRAFIK (Dikecilkan pakai kolom) ---
+            st.subheader("Profit Trend (Last 200 Data Points)")
+            # Kita urutkan ulang biar grafik jalan dari kiri ke kanan
+            chart_data = df_chart.sort_values('timestamp').set_index('timestamp')
+            st.line_chart(chart_data, height=250) # Height 250 biar gak kegedean
+
+            # --- TABEL ---
+            st.subheader("Latest Opportunities")
             format_dict = {
                 "buy_price": "${:,.2f}",
                 "sell_price": "${:,.2f}",
                 "gross_profit": "${:,.2f}",
                 "profit_pct": "{:.2f}%"
             }
+            st.dataframe(df_table.style.format(format_dict).highlight_max(axis=0, color='green'))
             
-            # Bikin grafik garis sederhana
-            # Sumbu X = Waktu, Sumbu Y = Persen Profit
-            chart_data = df[['timestamp', 'profit_pct']].set_index('timestamp')
-            st.line_chart(chart_data)
-
-            # Warnai tabel
-            st.dataframe(df.style.format(format_dict).highlight_max(axis=0, color='green'))
         else:
-            st.warning("No profitable arbitrage opportunities at the moment.")
+            st.warning("Waiting for data...")
             
-        time.sleep(5) # Refresh tampilan tiap 5 detik
+        time.sleep(5)

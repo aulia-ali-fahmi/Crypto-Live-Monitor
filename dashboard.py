@@ -57,6 +57,12 @@ while True:
                 "gross_profit": "${:,.2f}",
                 "profit_pct": "{:.2f}%"
             }
+            
+            # Bikin grafik garis sederhana
+            # Sumbu X = Waktu, Sumbu Y = Persen Profit
+            chart_data = df[['timestamp', 'profit_pct']].set_index('timestamp')
+            st.line_chart(chart_data)
+
             # Warnai tabel
             st.dataframe(df.style.format(format_dict).highlight_max(axis=0, color='green'))
         else:
